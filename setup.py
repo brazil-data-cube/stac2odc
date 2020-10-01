@@ -11,7 +11,14 @@ from setuptools import find_packages, setup
 readme = open('README.rst').read()
 history = open('CHANGES.rst').read()
 
-docs_require = []
+docs_require = [
+    'Sphinx>=2.2',
+    'sphinx_copybutton',
+    'sphinx.ext.todo',
+    'sphinx_rtd_theme',
+    'sphinx_tabs.tabs',
+    'sphinx_click'
+]
 
 tests_require = []
 
