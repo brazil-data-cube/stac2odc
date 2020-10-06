@@ -1,4 +1,5 @@
-# stac2odc
+stac2odc
+=========
 
 .. image:: https://img.shields.io/github/license/brazil-data-cube/stac2odc.svg
         :target: https://github.com/brazil-data-cube/bdc-odc/blob/master/LICENSE
