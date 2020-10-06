@@ -11,8 +11,31 @@ from abc import ABC, abstractmethod
 from loguru import logger
 import stac2odc.utils as utils
 from collections import OrderedDict
+from stac.item import Item
+from stac.collection import Collection
 
 
+class StacMapper(ABC):
+    @abstractmethod
+    def collection_to_product(self, stac_collection: Collection, custom_fields: dict) -> OrderedDict:
+        pass
+
+    @abstractmethod
+    def item_to_dataset(self, stac_item: Item, custom_fields: dict) -> OrderedDict:
+        pass
+
+
+class Stac09Mapper(StacMapper):
+    def collection_to_product(self, stac_collection: Collection, custom_fields: dict) -> OrderedDict:
+        pass
+
+    def item_to_dataset(self, stac_item: Item, custom_fields: dict) -> OrderedDict:
+        pass
+
+    def _build_custom_tree(self, odc_element: OrderedDict):
+        pass
+
+"""
 class Stac2ODCMapper(ABC):
     @abstractmethod
     def map_collection(self, collection, **kwargs) -> OrderedDict:
@@ -295,3 +318,4 @@ class Stac2ODCMapper09(Stac2ODCMapper):
                             band, f['id']))
             odc_items.append(feature)
         return odc_items
+"""
