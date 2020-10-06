@@ -20,7 +20,9 @@ docs_require = [
     'sphinx_click'
 ]
 
-tests_require = []
+tests_require = [
+    'pytest==6.1.1'
+]
 
 extras_require = {
 }
