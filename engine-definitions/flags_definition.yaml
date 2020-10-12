@@ -22,7 +22,9 @@ pixel_qa:
     bits: 1
     description: Clear
     values: {0: no_clear_land, 1: clear_land}
+  # ...
   cloud_confidence:
     bits: [6, 7]
     description: Cloud confidence
     values: {0: none, 1: low, 2: medium, 3: high}
+  # ...

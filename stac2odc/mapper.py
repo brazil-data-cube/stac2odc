@@ -7,15 +7,12 @@
 #
 
 from collections import OrderedDict
-from stac2odc.ioa import load_custom_configuration_file
+
 from stac2odc.exception import ODCInvalidType, EngineDefinitionNotFound
+from stac2odc.io import load_custom_configuration_file
 
 
 class StacMapperEngine:
-    DEFAULT_ENGINE_DEFINITION = {
-        'STAC09': 'engine-definitions/stac_mapper_v09.json'
-    }
-
     def __init__(self, engine_definition_file=None, engine_type=None):
         """StacMapperEngine is a core of stac2odc tool. An engine is able to map the STAC definition to ODC definition
         Args:
@@ -74,20 +71,11 @@ class StacMapperEngine:
             else:
                 stac_value = self._get_value_by_tree_path(stac_collection, product_definition.get(product_property))
             self._add_value_by_tree_path(odc_product_definition, product_property, stac_value)
+        return self._add_custom_fields_to_odc_element(odc_product_definition, "collection")
 
-        # adding constants definitions
-        constants_product_definition = collection_mapper.get('fromConstant')
-
-        for constant_product_definition in constants_product_definition:
-            _value = constants_product_definition.get(constant_product_definition)
-            self._add_value_by_tree_path(odc_product_definition, constant_product_definition, _value)
-        return odc_product_definition
-
-    def add_custom_fields_to_odc_element(self, stac_collection: dict, odc_element: OrderedDict, custom_fields_obj: dict,
-                                         odc_element_type: str) -> OrderedDict:
+    def _add_custom_fields_to_odc_element(self, odc_element: OrderedDict, odc_element_type: str) -> OrderedDict:
         """Add custom fields into ODC Elements (Products or Datasets) in arbitrary tree paths
         Args:
-            stac_collection (dict): STAC Collection properties
             odc_element (OrderedDict): Element where value is inserted (in-place)
             custom_fields_obj (dict): Dict with custom fields to inser in odc_element
             odc_element_type (str): Name of odc element where values is inserted. It has to be the same value defined
@@ -95,25 +83,37 @@ class StacMapperEngine:
         Returns:
             OrderedDict: ODC Element with custom fields inserted
         """
-
-        if not custom_fields_obj.get(odc_element_type, None):
+        if not self._engine_definition.get(odc_element_type, None):
             raise ODCInvalidType(f"ODC Type {odc_element_type} is not avaliable in custom fields definition!")
 
-        from_user_definition = custom_fields_obj.get(odc_element_type, None).get('fromUser', None)
-        from_stac_definition = custom_fields_obj.get(odc_element_type, None).get('fromStac', None)
+        mapper = self._engine_definition.get(odc_element_type)
 
-        if from_stac_definition:
-            for odc_element_property in from_stac_definition:
-                custom_field = from_stac_definition.get(odc_element_property).get('addTo')
-                stac_value = self._get_value_by_tree_path(stac_collection, odc_element_property)
-                self._add_value_by_tree_path(odc_element, custom_field, stac_value)
+        from_file_definitions = mapper.get('fromFile', None)
+        from_constant_definitions = mapper.get('fromConstant', None)
 
-        if from_user_definition:
-            for odc_element_property in from_user_definition:
+        if from_file_definitions:
+            for odc_element_property in from_file_definitions:
                 value = load_custom_configuration_file(
-                    from_user_definition.get(odc_element_property).get('file')
+                    from_file_definitions.get(odc_element_property).get('file')
                 )
                 self._add_value_by_tree_path(odc_element, odc_element_property, value)
+
+        # adding constants definitions
+        if from_constant_definitions:
+            for constant_product_definition in from_constant_definitions:
+                tree_path = constant_product_definition.split(".")
+                _value = from_constant_definitions.get(constant_product_definition)
+                if len(tree_path) > 1:  # check if tree_path go to a list of elements
+                    _odc_prod_def = odc_element.copy()
+                    for tp in tree_path[:-1]:
+                        _odc_prod_def = _odc_prod_def.get(tp)
+                        if isinstance(_odc_prod_def, list):
+                            for el in _odc_prod_def:
+                                key = list(el.keys())[0]
+                                self._add_value_by_tree_path(odc_element, ".".join([tp, el.get(key), tree_path[-1]]),
+                                                             _value)
+                else:
+                    self._add_value_by_tree_path(odc_element, constant_product_definition, _value)
         return odc_element
 
     def _get_value_by_tree_path(self, element: dict, tree_path: str):
@@ -175,27 +175,3 @@ class StacMapperEngine:
                 _pelement = _pelement[_element_index]
             else:
                 _pelement = _pelement[tree_node]
-
-    @classmethod
-    def get_registered_engines(cls):
-        return cls.DEFAULT_ENGINE_DEFINITION.copy()
-
-
-if __name__ == '__main__':
-    import os
-    import yaml
-    import stac
-
-    stac_service = stac.STAC('http://brazildatacube.dpi.inpe.br/stac/', False)
-    stac_collection = stac_service.collection('CB4_64_16D_STK-1')
-
-    print(StacMapperEngine.get_registered_engines())
-
-    custom_fields_definition = load_custom_configuration_file(os.path.join(os.getcwd(), 'engine-definitions/custom-field-definition.json'))
-
-    engine = StacMapperEngine(os.path.join(os.getcwd(), 'engine-definitions/stac_mapper_v09.json'))
-    odc_product = engine.map_collection_to_product(stac_collection)
-    odc_product = engine.add_custom_fields_to_odc_element(stac_collection, odc_product, custom_fields_definition, "product")
-
-    with open('stac_collection.yaml', 'w') as f:
-        yaml.dump(odc_product, f)
