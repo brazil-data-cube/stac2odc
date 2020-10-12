@@ -13,19 +13,11 @@ from stac2odc.io import load_custom_configuration_file
 
 
 class StacMapperEngine:
-    def __init__(self, engine_definition_file=None, engine_type=None):
+    def __init__(self, engine_definition_file=None):
         """StacMapperEngine is a core of stac2odc tool. An engine is able to map the STAC definition to ODC definition
         Args:
             engine_definition_file (str): File with StacMapperEngine definition
-            engine_type (str): Name of pre-registered StacMapperEngine definition
         """
-
-        if not engine_definition_file:
-            if engine_type:
-                engine_definition_file = self.DEFAULT_ENGINE_DEFINITION[engine_type]
-            else:
-                raise EngineDefinitionNotFound("Any engine definition was not found")
-
         self._engine_definition = load_custom_configuration_file(engine_definition_file)
 
     def map_collection_to_product(self, stac_collection: dict):

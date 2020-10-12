@@ -6,52 +6,29 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 #
 
-from collections import OrderedDict
-from stac.collection import Collection
-from stac2odc.mapper import Stac2ODCMapper
+import yaml
+from loguru import logger
+
+from stac2odc.logger import logger_message
+from stac2odc.mapper import StacMapperEngine
 
 
-def collection2product(collection: Collection, mapper: Stac2ODCMapper, **kwargs) -> OrderedDict:
+def collection2product(engine_definition_file: str, collection_definition: dict, outfile: str, **kwargs) -> None:
     """Function to convert a STAC Collection JSON to ODC Product YAML
 
     Args:
-        collection (stac.collection.Collection): An Collection
-        constants (dict): A dict with behavior definitions
-        mapper (stac2odc.mapper.Stac2ODCMapper): An mapper to convert STAC collection to ODC Products
-    See:
-        See the BDC STAC catalog for more information on the collections available
-        (http://brazildatacube.dpi.inpe.br/bdc-stac/0.8.0/)
+        engine_definition_file (str): File with definitions of mapping rules
+        collection_definition (dict): definition of STAC Collection to be mapper as ODC Product
+        outfile (str): file to write output result
     """
+    is_verbose = kwargs.get('verbose')
 
-    # ToDo: Add validators
-    return mapper.map_collection(collection, **kwargs)
+    logger_message("start collection2product operation", logger.info, is_verbose)
+    engine = StacMapperEngine(engine_definition_file)
 
+    logger_message("Mapping STAC Collection to ODC Product", logger.info, is_verbose)
+    odc_product = engine.map_collection_to_product(collection_definition)
 
-if __name__ == '__main__':
-    import stac
-    import yaml
-
-    import stac2odc.item
-    import stac2odc.collection
-    from stac2odc.mapper import Stac2ODCMapper09
-
-    constants = {
-        'instrument_type': 'AWFI',
-        'metadata_type': 'eo',
-        'platform_code': 'CBERS04',
-        'format_name': 'GeoTiff',
-        'units': 'm',
-        'ignore': ['quality'],
-        "is_pre_collection": False,
-        'verbose': True
-    }
-    outfile = 'test.yaml'
-    s = stac.STAC('http://brazildatacube.dpi.inpe.br/stac/', False)
-    c = s.collection('CB4_64_16D_STK-1')
-    yaml_content = stac2odc.collection.collection2product(c, Stac2ODCMapper09(), **constants)
-
-    if outfile is None:
-        print(yaml.dump(yaml_content))
-    else:
-        with open(outfile, 'w') as f:
-            yaml.dump(yaml_content, f)
+    logger_message("Writing the result!", logger.info, is_verbose)
+    with open(outfile, 'w') as ofile:
+        yaml.dump(odc_product, ofile)
