@@ -1,0 +1,16 @@
+{
+  "product": {
+    "fromStac": {
+		"bdc:crs": {
+			"addTo": "storage.crs"
+		}
+	},
+	"fromUser": {
+		"measurements.pixel_qa.flags_definition": {
+			"file": "flags_definition.yaml"
+		}
+	}
+  },
+  "dataset": {
+  }
+}

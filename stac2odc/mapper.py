@@ -8,7 +8,7 @@
 
 from collections import OrderedDict
 from stac2odc.ioa import load_custom_configuration_file
-from stac2odc.exception import EngineDefinitionNotFound
+from stac2odc.exception import ODCInvalidType, EngineDefinitionNotFound
 
 
 class StacMapperEngine:
@@ -74,7 +74,38 @@ class StacMapperEngine:
             else:
                 stac_value = self._get_value_by_tree_path(stac_collection, product_definition.get(product_property))
             self._add_value_by_tree_path(odc_product_definition, product_property, stac_value)
+
+        # adding constants definitions
+        constants_product_definition = collection_mapper.get('fromConstant')
+
+        for constant_product_definition in constants_product_definition:
+            _value = constants_product_definition.get(constant_product_definition)
+            self._add_value_by_tree_path(odc_product_definition, constant_product_definition, _value)
         return odc_product_definition
+
+    def add_custom_fields_to_odc_element(self, stac_collection: dict, odc_element: OrderedDict, custom_fields_obj: dict,
+                                         odc_element_type: str) -> OrderedDict:
+        """Add custom fields into ODC Elements (Products or Datasets) in arbitrary tree paths
+        Args:
+            stac_collection (dict): STAC Collection properties
+            odc_element (OrderedDict): Element where value is inserted (in-place)
+            custom_fields_obj (dict): Dict with custom fields to inser in odc_element
+            odc_element_type (str): Name of odc element where values is inserted. It has to be the same value defined
+            in custom_fields_obj
+        Returns:
+            OrderedDict: ODC Element with custom fields inserted
+        """
+
+        if not custom_fields_obj.get(odc_element_type, None):
+            raise ODCInvalidType(f"ODC Type {odc_element_type} is not avaliable in custom fields definition!")
+
+        from_stac_definition = custom_fields_obj.get(odc_element_type, None).get('fromStac')
+        for odc_element_property in from_stac_definition:
+            custom_field = from_stac_definition.get(odc_element_property).get('addTo')
+
+            stac_value = self._get_value_by_tree_path(stac_collection, odc_element_property)
+            self._add_value_by_tree_path(odc_element, custom_field, stac_value)
+        return odc_element
 
     def _get_value_by_tree_path(self, element: dict, tree_path: str):
         """This method gets value from a dict using a string path separated with points.
@@ -97,10 +128,10 @@ class StacMapperEngine:
             element = element[tree_node]
         return element
 
-    def _add_value_by_tree_path(self, element: dict, tree_path: str, value: object) -> None:
+    def _add_value_by_tree_path(self, element: OrderedDict, tree_path: str, value: object) -> None:
         """Add values in dictionary using path separated with points
         Args:
-            element (dict): Element where value is inserted (in-place)
+            element (OrderedDict): Element where value is inserted (in-place)
             tree_path (str): String separated with points representing the tree path
             value (object): Value to be inserted
         Returns:
@@ -130,10 +161,13 @@ if __name__ == '__main__':
     stac_service = stac.STAC('http://brazildatacube.dpi.inpe.br/stac/', False)
     stac_collection = stac_service.collection('CB4_64_16D_STK-1')
 
-    # custom_fields_definition = json.load(open(os.path.join(os.getcwd(), 'json-schemas/custom-field-definition.json')))
+    print(StacMapperEngine.get_registered_engines())
+
+    custom_fields_definition = load_custom_configuration_file(os.path.join(os.getcwd(), 'engine-definitions/custom-field-definition.json'))
 
     engine = StacMapperEngine(os.path.join(os.getcwd(), 'engine-definitions/stac_mapper_v09.json'))
     odc_product = engine.map_collection_to_product(stac_collection)
+    odc_product = engine.add_custom_fields_to_odc_element(stac_collection, odc_product, custom_fields_definition, "product")
 
     with open('stac_collection.yaml', 'w') as f:
         yaml.dump(odc_product, f)

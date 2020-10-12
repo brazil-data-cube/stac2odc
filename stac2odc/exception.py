@@ -1,2 +1,6 @@
 class EngineDefinitionNotFound(RuntimeError):
     ...
+
+
+class ODCInvalidType(RuntimeError):
+    ...
