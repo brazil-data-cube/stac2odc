@@ -99,12 +99,21 @@ class StacMapperEngine:
         if not custom_fields_obj.get(odc_element_type, None):
             raise ODCInvalidType(f"ODC Type {odc_element_type} is not avaliable in custom fields definition!")
 
-        from_stac_definition = custom_fields_obj.get(odc_element_type, None).get('fromStac')
-        for odc_element_property in from_stac_definition:
-            custom_field = from_stac_definition.get(odc_element_property).get('addTo')
+        from_user_definition = custom_fields_obj.get(odc_element_type, None).get('fromUser', None)
+        from_stac_definition = custom_fields_obj.get(odc_element_type, None).get('fromStac', None)
 
-            stac_value = self._get_value_by_tree_path(stac_collection, odc_element_property)
-            self._add_value_by_tree_path(odc_element, custom_field, stac_value)
+        if from_stac_definition:
+            for odc_element_property in from_stac_definition:
+                custom_field = from_stac_definition.get(odc_element_property).get('addTo')
+                stac_value = self._get_value_by_tree_path(stac_collection, odc_element_property)
+                self._add_value_by_tree_path(odc_element, custom_field, stac_value)
+
+        if from_user_definition:
+            for odc_element_property in from_user_definition:
+                value = load_custom_configuration_file(
+                    from_user_definition.get(odc_element_property).get('file')
+                )
+                self._add_value_by_tree_path(odc_element, odc_element_property, value)
         return odc_element
 
     def _get_value_by_tree_path(self, element: dict, tree_path: str):
@@ -140,13 +149,32 @@ class StacMapperEngine:
         tree_path = tree_path.split('.')
 
         _pelement = element
+        _element_index = -1
         for tree_node in tree_path:
             # walking through tree nodes
             if tree_node not in _pelement:
-                _pelement[tree_node] = OrderedDict()
+                if isinstance(_pelement, list):
+                    for index in range(0, len(_pelement)):
+                        for key in _pelement[index]:
+                            if _pelement[index][key] == tree_node:
+                                _element_index = index
+                                break
+                    # if no key in returned from search, add a new element in last position
+                    if _element_index == -1:
+                        _pelement.append(OrderedDict())
+                else:
+                    _pelement[tree_node] = OrderedDict()
+
+                # check if is the last element
                 if tree_node == tree_path[-1]:
-                    _pelement[tree_node] = value
-            _pelement = _pelement[tree_node]
+                    if isinstance(_pelement, list):
+                        _pelement[_element_index] = value
+                    else:
+                        _pelement[tree_node] = value
+            if isinstance(_pelement, list):
+                _pelement = _pelement[_element_index]
+            else:
+                _pelement = _pelement[tree_node]
 
     @classmethod
     def get_registered_engines(cls):

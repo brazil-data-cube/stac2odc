@@ -6,8 +6,8 @@
 		}
 	},
 	"fromUser": {
-		"measurements.pixel_qa.flags_definition": {
-			"file": "flags_definition.yaml"
+		"measurements.CLEAROB.flags_definition": {
+			"file": "custom-definitions/flags_definition.yaml"
 		}
 	}
   },
