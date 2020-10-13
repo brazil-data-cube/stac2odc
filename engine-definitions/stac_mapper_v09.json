@@ -12,6 +12,10 @@
           "alias": "common_name",
           "dtype": "data_type",
           "nodata": "nodata"
+        },
+        "customMapFunction": {
+          "functionName": "userDefinedFunction",
+          "functionFile": "userDefinedFunctionFile.py"
         }
       },
       "storage.crs": "bdc:crs"
