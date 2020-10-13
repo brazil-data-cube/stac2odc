@@ -8,8 +8,9 @@
 
 from collections import OrderedDict
 
-from stac2odc.exception import ODCInvalidType, EngineDefinitionNotFound
+from stac2odc.exception import ODCInvalidType
 from stac2odc.io import load_custom_configuration_file
+from stac2odc.operation import apply_custom_map_function
 
 
 class StacMapperEngine:
@@ -60,6 +61,9 @@ class StacMapperEngine:
             if 'customMapping' in property_definition:
                 stac_value = self._get_value_by_tree_path(stac_collection, property_definition.get('from'))
                 stac_value = apply_custom_mapping_in_stac_values(stac_value, property_definition.get('customMapping'))
+            elif 'customMapFunction' in product_property:
+                stac_value = self._get_value_by_tree_path(stac_collection, property_definition.get('from'))
+                stac_value = apply_custom_map_function(stac_value, property_definition.get('customMapFunction'))
             else:
                 stac_value = self._get_value_by_tree_path(stac_collection, product_definition.get(product_property))
             self._add_value_by_tree_path(odc_product_definition, product_property, stac_value)
@@ -69,7 +73,6 @@ class StacMapperEngine:
         """Add custom fields into ODC Elements (Products or Datasets) in arbitrary tree paths
         Args:
             odc_element (OrderedDict): Element where value is inserted (in-place)
-            custom_fields_obj (dict): Dict with custom fields to inser in odc_element
             odc_element_type (str): Name of odc element where values is inserted. It has to be the same value defined
             in custom_fields_obj
         Returns:
@@ -167,3 +170,12 @@ class StacMapperEngine:
                 _pelement = _pelement[_element_index]
             else:
                 _pelement = _pelement[tree_node]
+
+    def map_item_to_dataset(self, stac_collection: dict):
+        """
+        Args:
+            stac_collection:
+
+        Returns:
+        """
+        pass
