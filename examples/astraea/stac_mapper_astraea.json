@@ -9,7 +9,7 @@
         "from": "assets",
         "customMapFunction": {
           "functionName": "functionToMapL8Assets",
-          "functionFile": "engine-definitions/custom_functions.py"
+          "functionFile": "examples/astraea/custom_functions.py"
         }
       }
     },
