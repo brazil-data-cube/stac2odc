@@ -40,7 +40,8 @@ install_requires = [
     'jsonschema==3.2.0',
     'pyyaml>=5.3.1',
     'stac.py',
-    'click>=7.1.0'
+    'click>=7.1.0',
+    'datacube==1.8.3'
 ]
 
 packages = find_packages()
