@@ -24,7 +24,7 @@ def get_value_by_tree_path(element: dict, tree_path: str):
 
 
 def add_value_by_tree_path(element: OrderedDict, tree_path: str, value: object) -> None:
-    """Add values in dictionary using path separated with points
+    """Add values in dictionary using path separated with points. Apply modifications in-place
     Args:
         element (OrderedDict): Element where value is inserted (in-place)
         tree_path (str): String separated with points representing the tree path

@@ -10,8 +10,8 @@ from collections import OrderedDict
 
 import stac2odc.tree as tree
 from stac2odc.exception import ODCInvalidType
-from stac2odc.io_yaml import load_custom_configuration_file
 from stac2odc.operation import apply_custom_map_function
+from stac2odc.toolbox import load_custom_configuration_file
 
 
 class StacMapperEngine:
