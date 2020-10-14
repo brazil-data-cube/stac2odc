@@ -8,8 +8,9 @@
 
 from collections import OrderedDict
 
+import stac2odc.tree as tree
 from stac2odc.exception import ODCInvalidType
-from stac2odc.io import load_custom_configuration_file
+from stac2odc.io_yaml import load_custom_configuration_file
 from stac2odc.operation import apply_custom_map_function
 
 
@@ -59,14 +60,17 @@ class StacMapperEngine:
             property_definition = product_definition.get(product_property)
 
             if 'customMapping' in property_definition:
-                stac_value = self._get_value_by_tree_path(stac_collection, property_definition.get('from'))
+                stac_value = tree.get_value_by_tree_path(stac_collection, property_definition.get('from'))
                 stac_value = apply_custom_mapping_in_stac_values(stac_value, property_definition.get('customMapping'))
-            elif 'customMapFunction' in product_property:
-                stac_value = self._get_value_by_tree_path(stac_collection, property_definition.get('from'))
-                stac_value = apply_custom_map_function(stac_value, property_definition.get('customMapFunction'))
-            else:
-                stac_value = self._get_value_by_tree_path(stac_collection, product_definition.get(product_property))
-            self._add_value_by_tree_path(odc_product_definition, product_property, stac_value)
+            elif 'customMapFunction' in property_definition:
+                property_is_from = property_definition.get('from')
+
+                stac_value = tree.get_value_by_tree_path(stac_collection, property_is_from)
+                stac_value = apply_custom_map_function(property_is_from, stac_value,
+                                                       property_definition.get('customMapFunction'))
+            else:  # normal code
+                stac_value = tree.get_value_by_tree_path(stac_collection, product_definition.get(product_property))
+            tree.add_value_by_tree_path(odc_product_definition, product_property, stac_value)
         return self._add_custom_fields_to_odc_element(odc_product_definition, "collection")
 
     def _add_custom_fields_to_odc_element(self, odc_element: OrderedDict, odc_element_type: str) -> OrderedDict:
@@ -86,13 +90,6 @@ class StacMapperEngine:
         from_file_definitions = mapper.get('fromFile', None)
         from_constant_definitions = mapper.get('fromConstant', None)
 
-        if from_file_definitions:
-            for odc_element_property in from_file_definitions:
-                value = load_custom_configuration_file(
-                    from_file_definitions.get(odc_element_property).get('file')
-                )
-                self._add_value_by_tree_path(odc_element, odc_element_property, value)
-
         # adding constants definitions
         if from_constant_definitions:
             for constant_product_definition in from_constant_definitions:
@@ -105,71 +102,19 @@ class StacMapperEngine:
                         if isinstance(_odc_prod_def, list):
                             for el in _odc_prod_def:
                                 key = list(el.keys())[0]
-                                self._add_value_by_tree_path(odc_element, ".".join([tp, el.get(key), tree_path[-1]]),
-                                                             _value)
+                                tree.add_value_by_tree_path(odc_element, ".".join([tp, el.get(key), tree_path[-1]]),
+                                                            _value)
                 else:
-                    self._add_value_by_tree_path(odc_element, constant_product_definition, _value)
+                    tree.add_value_by_tree_path(odc_element, constant_product_definition, _value)
+
+        if from_file_definitions:
+            for odc_element_property in from_file_definitions:
+                value = load_custom_configuration_file(
+                    from_file_definitions.get(odc_element_property).get('file')
+                )
+                tree.add_value_by_tree_path(odc_element, odc_element_property, value)
+
         return odc_element
-
-    def _get_value_by_tree_path(self, element: dict, tree_path: str):
-        """This method gets value from a dict using a string path separated with points.
-        e. g.
-            using the following dict:
-                person = {'person': {'surname': 'blabla', 'age': 25}}
-            to get the surname:
-                _get_value_by_tree_path(person, 'person.surname')
-
-        Args:
-            element (dict): Element to get values using tree path
-            tree_path (str): String separated with points representing the tree path
-        Returns:
-            recovered value using tree_path
-        """
-        element = element.copy()
-        tree_path = tree_path.split('.')
-
-        for tree_node in tree_path:
-            element = element[tree_node]
-        return element
-
-    def _add_value_by_tree_path(self, element: OrderedDict, tree_path: str, value: object) -> None:
-        """Add values in dictionary using path separated with points
-        Args:
-            element (OrderedDict): Element where value is inserted (in-place)
-            tree_path (str): String separated with points representing the tree path
-            value (object): Value to be inserted
-        Returns:
-            None
-        """
-        tree_path = tree_path.split('.')
-
-        _pelement = element
-        _element_index = -1
-        for tree_node in tree_path:
-            # walking through tree nodes
-            if tree_node not in _pelement:
-                if isinstance(_pelement, list):
-                    for index in range(0, len(_pelement)):
-                        for key in _pelement[index]:
-                            if _pelement[index][key] == tree_node:
-                                _element_index = index
-                                break
-                    # if no key in returned from search, add a new element in last position
-                    if _element_index == -1:
-                        _pelement.append(OrderedDict())
-                else:
-                    _pelement[tree_node] = OrderedDict()
-
-                # check if is the last element
-                if tree_node == tree_path[-1]:
-                    if isinstance(_pelement, list):
-                        _pelement[_element_index] = value
-                    else:
-                        _pelement[tree_node] = value
-            if isinstance(_pelement, list):
-                _pelement = _pelement[_element_index]
-            else:
-                _pelement = _pelement[tree_node]
 
     def map_item_to_dataset(self, stac_collection: dict):
         """

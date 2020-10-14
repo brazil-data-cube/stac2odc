@@ -10,5 +10,9 @@ class EngineDefinitionNotFound(RuntimeError):
     ...
 
 
-class ODCInvalidType(RuntimeError):
+class ODCInvalidType(TypeError):
+    ...
+
+
+class InvalidReturnedTypeFromUserDefinedFunction(TypeError):
     ...

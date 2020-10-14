@@ -7,10 +7,11 @@
 #
 
 from collections import OrderedDict
-from typing import Union, Any
+from typing import List, Union
+
+from stac2odc.exception import InvalidReturnedTypeFromUserDefinedFunction
 
 
-# ToDo: Check parameters and create exceptions for this operation
 def load_user_defined_function(function_name: str, module_file: str):
     """Function to load arbitrary functions
 
@@ -31,11 +32,12 @@ def load_user_defined_function(function_name: str, module_file: str):
     return getattr(module, function_name)
 
 
-# ToDo: Check parameters and create exceptions for this operation
-def apply_custom_map_function(function_definition: dict, stac_values: object) -> Union[list, Any]:
+def apply_custom_map_function(stac_element_name: str,
+                              stac_values: object, function_definition: dict) -> Union[List[OrderedDict], OrderedDict]:
     """Function to apply custom map function to STAC Values
 
     Args:
+        stac_element_name (str): Key name where values from
         function_definition (dict): Dict with informations about function definition file (key functionName) and
         function name (key functionFile)
         stac_values: (object): objects will be used as parameters in user defined function
@@ -43,9 +45,16 @@ def apply_custom_map_function(function_definition: dict, stac_values: object) ->
         OrderedDict: Mapped elements from STAC to ODC pattern
     """
 
-    user_defined_function = load_user_defined_function(**function_definition)
+    user_defined_function = load_user_defined_function(function_definition['functionName'],
+                                                       function_definition['functionFile'])
+    odc_element_created_with_user_function = user_defined_function(stac_values)
 
-    # ToDo: Check result elements
-    if isinstance(stac_values, list):
-        return [user_defined_function(element) for element in stac_values]
-    return user_defined_function(stac_values)
+    if not isinstance(odc_element_created_with_user_function, OrderedDict) and not isinstance(
+            odc_element_created_with_user_function, list):
+        tname = type(odc_element_created_with_user_function)
+
+        raise InvalidReturnedTypeFromUserDefinedFunction(f"""
+            The user defined function to {stac_element_name} is invalid! The output must be an OrderedDict or list. 
+Actual return is {tname} 
+        """.strip())
+    return odc_element_created_with_user_function
