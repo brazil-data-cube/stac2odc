@@ -9,7 +9,7 @@
 import json
 import os
 from collections import OrderedDict
-from typing import Union, Any
+from typing import Union, Any, List
 
 import yaml
 
@@ -58,3 +58,64 @@ def datacube_index(datacube_config_path=None) -> Union['datacube.index.index.Ind
 
     datacube_config = datacube.config.LocalConfig.find(datacube_config_path)
     return datacube.index.index_connect(datacube_config, 'stac2odc')
+
+
+def create_feature_collection_from_stac_elements(stac_service, max_items: int, advanced_filter: dict) -> List:
+    """Create list with all stac features avaliable in STAC.
+
+    Args
+        stac_service (stac.STAC): STAC Service instance
+        max_items (int): Max items recovered from STAC
+        advanced_filter (dict): Filter with STAC parameters to recovery feature collection
+    Returns:
+        List: List of features recovered from STAC
+    """
+
+    stac_max_page = 99999999
+
+    limit = 120
+    total_items = 0
+    features_recovered_from_search = []
+    for page in range(1, stac_max_page + 1):
+        if max_items is not None and max_items == total_items:
+            break
+
+        if limit > (max_items - total_items):
+            limit = (max_items - total_items)
+
+        features = stac_service.search({
+            **advanced_filter, **{
+                "page": page,
+                "limit": limit
+            }
+        }).features
+        features_recovered_from_search.extend(features)
+
+        if len(features) == 0:
+            break
+    return features_recovered_from_search
+
+
+def prepare_advanced_filter(filter_options: str) -> dict:
+    """Prepare a region geometry from file or string
+    Args:
+        filter_options: geometry str or file path to geometry.
+
+        >> filter_options = {'intersects': {'type': 'Point', 'coordinates': [-45, -13]}}
+        >> filter_options = '/path/to/geom.json
+    Returns:
+    """
+    import ast
+    import json
+
+    if filter_options:
+        if os.path.isfile(filter_options):
+            with open(filter_options, 'r') as f:
+                filter_options = json.load(f)
+            # advanced filter do not specify collections!
+            if 'collections' in filter_options:
+                del filter_options['collections']
+        else:
+            filter_options = ast.literal_eval(filter_options)
+        return filter_options
+    return None
