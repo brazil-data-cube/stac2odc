@@ -1,12 +1,12 @@
 {
-  "engine_name": "bdc-stac-09-mapper",
+  "engine_name": "stac-mapper",
   "collection": {
     "fromSTAC": {
       "name": "id",
       "description": "description",
       "metadata.product.name": "id",
       "measurements": {
-        "from": "properties.eo:bands",
+        "from": "properties.bands",
         "customMapping": {
           "name": "name",
           "alias": "common_name",
@@ -17,11 +17,15 @@
           "functionName": "userDefinedFunction",
           "functionFile": "userDefinedFunctionFile.py"
         }
-      },
-      "storage.crs": "bdc:crs"
+      }
     },
+	"fromFile": {
+		"measurements.band_name.flags_definition": {
+			"file": "engine-definitions/flags_definition.yaml"
+		}
+	},
     "fromConstant": {
-      "metadata_type": "eo3",
+      "metadata_type": "eo",
       "measurements.units": "meters"
     }
   },

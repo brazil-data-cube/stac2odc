@@ -1,0 +1,23 @@
+{
+  "engine_name": "astraea-stac-09-mapper",
+  "collection": {
+    "fromSTAC": {
+      "name": "id",
+      "description": "description",
+      "metadata.product.name": "familyTitle",
+      "measurements": {
+        "from": "assets",
+        "customMapFunction": {
+          "functionName": "functionToMapL8Assets",
+          "functionFile": "engine-definitions/custom_functions.py"
+        }
+      }
+    },
+    "fromConstant": {
+      "metadata_type": "eo",
+      "measurements.units": "meters"
+    }
+  },
+  "dataset": {
+  }
+}
