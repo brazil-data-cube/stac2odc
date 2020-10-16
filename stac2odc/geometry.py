@@ -7,10 +7,9 @@
 #
 
 import pyproj
-from shapely.ops import transform
-
 import shapely.geometry
 from shapely.geometry.base import BaseGeometry
+from shapely.ops import transform
 
 
 def _transform_crs(crs_src: str, crs_dest: str, geom: BaseGeometry) -> BaseGeometry:
@@ -48,7 +47,7 @@ class StacItemGeometry:
             self._basegeom = geom_def._base_geom
         elif "type" in geom_def:
             # check is a geojson
-            self._basegeom = shapely.geometry.Polygon(*geom_def['geometry']['coordinates'])
+            self._basegeom = shapely.geometry.Polygon(*geom_def['coordinates'])
         else:
             # get bbox
             self._basegeom = shapely.geometry.box(*geom_def)
