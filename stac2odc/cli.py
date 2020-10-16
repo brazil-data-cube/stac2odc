@@ -17,7 +17,7 @@ from loguru import logger
 import stac2odc.collection
 import stac2odc.item
 from stac2odc.logger import logger_message
-from stac2odc.toolbox import write_yaml_file, datacube_index, prepare_advanced_filter, \
+from stac2odc.toolbox import write_odc_element_in_yaml_file, datacube_index, prepare_advanced_filter, \
     create_feature_collection_from_stac_elements
 
 
@@ -46,7 +46,7 @@ def collection2product_cli(collection: str, url: str, outdir: str, engine_file: 
 
     collection_definition = stac.STAC(url, False).collection(collection)
     odc_element = stac2odc.collection.collection2product(engine_file, collection_definition, **options)
-    product_definition_file = write_yaml_file(odc_element, os.path.join(outdir, f'{collection}.yaml'))
+    product_definition_file = write_odc_element_in_yaml_file(odc_element, os.path.join(outdir, f'{collection}.yaml'))
 
     # code adapted from: https://github.com/opendatacube/datacube-core/blob/develop/datacube/scripts/product.py
     for path_descriptor, parsed_doc in read_documents(*[product_definition_file]):

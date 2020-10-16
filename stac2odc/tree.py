@@ -1,6 +1,25 @@
 from collections import OrderedDict
 
 
+def is_path_valid_in_tree(element: dict, tree_path: str):
+    """
+    Args:
+        element:
+        tree_path:
+
+    Returns:
+    """
+    element = element.copy()
+    tree_path = tree_path.split('.')
+
+    for tree_node in tree_path:
+        if tree_node in element:
+            element = element[tree_node]
+        else:
+            return False
+    return True
+
+
 def get_value_by_tree_path(element: dict, tree_path: str):
     """This function gets value from a dict using a string path separated with points.
     e. g.

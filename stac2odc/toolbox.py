@@ -30,7 +30,7 @@ def load_custom_configuration_file(custom_configuration_file_path: str):
         return loader.load(cfile)
 
 
-def write_yaml_file(content: Union[dict, OrderedDict], path_to_file: str):
+def write_odc_element_in_yaml_file(content: Union[dict, OrderedDict, List[OrderedDict]], path_to_file: str):
     """
     Args:
         content (dict or OrderedDict): Content to write
@@ -38,10 +38,18 @@ def write_yaml_file(content: Union[dict, OrderedDict], path_to_file: str):
     Returns:
         None
     """
+
+    def _write(path_to_file, content):
+        with open(path_to_file, 'w') as ofile:
+            yaml.dump(content, ofile)
+
     os.makedirs(os.path.split(path_to_file)[0], exist_ok=True)
 
-    with open(path_to_file, 'w') as ofile:
-        yaml.dump(content, ofile)
+    if isinstance(content, list):
+        for c in content:
+            _write(os.path.join(path_to_file, c['id'] + ".yaml"), c)
+    else:
+        _write(path_to_file, content)
     return path_to_file
 
 
@@ -91,7 +99,7 @@ def create_feature_collection_from_stac_elements(stac_service, max_items: int, a
         }).features
         features_recovered_from_search.extend(features)
 
-        if len(features) == 0:
+        if len(features) == 0 or len(features_recovered_from_search) >= max_items:
             break
     return features_recovered_from_search
 
