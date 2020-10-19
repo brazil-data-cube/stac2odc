@@ -19,5 +19,17 @@
     }
   },
   "dataset": {
+    "fromSTAC": {
+      "measurements": {
+        "from": "assets",
+        "customMapping": {
+          "measurements.$key.path": "href",
+          "exclude": [
+            "thumb_large",
+            "thumb_small"
+          ]
+        }
+      }
+    }
   }
 }
