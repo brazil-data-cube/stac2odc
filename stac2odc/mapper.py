@@ -50,10 +50,20 @@ def _apply_custom_mapping(stac_values: Union[List, Dict], custom_mapping: dict) 
         def replace_by_key(text, to, src="$key") -> str:
             return text.replace(src, to)
 
+        custom_mapping = custom_mapping.copy()
+
+        # check if will be need exclude values
+        values_to_exclude = []
+        if custom_mapping.get('exclude'):
+            values_to_exclude = custom_mapping.get('exclude')
+            del custom_mapping['exclude']
+
         stac_values_with_custom_fields = OrderedDict()
         for stac_value_key in stac_values:
-            _stac_value = stac_values.get(stac_value_key)
+            if values_to_exclude and stac_value_key in values_to_exclude:
+                continue
 
+            _stac_value = stac_values.get(stac_value_key)
             for custom_key_mapping in custom_mapping:
                 tree_path = ".".join(replace_by_key(custom_key_mapping, stac_value_key).split(".")[1:])
                 tree.add_value_by_tree_path(stac_values_with_custom_fields, tree_path, _stac_value.get(
