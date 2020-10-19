@@ -43,13 +43,13 @@ def _create_geometry_object(geometry_path_in_stac_values: str, stac_values: Dict
     return
 
 
-def item2dataset(engine: StacMapperEngine, collection_name: str,
+def item2dataset(engine_definition_file: str, collection_name: str,
                  item_collection_definition: List, dc_index: datacube.index.index.Index = None, **kwargs) -> \
         Union[List[OrderedDict], OrderedDict]:
     """Function to convert a STAC Collection JSON to ODC Dataset YAML
 
     Args:
-        engine (StacMapperEngine): StacMapperEngine Instance
+        engine_definition_file (str): File with definitions of mapping rules
         collection_name (str): Name of collection
         item_collection_definition (list): Feature collected from STAC services
         dc_index (str): Instance of datacube_index. If not defined, some properties will not be defined in
@@ -61,6 +61,7 @@ def item2dataset(engine: StacMapperEngine, collection_name: str,
 
     is_verbose = kwargs.get('verbose')
     logger_message("start item2dataset operation", logger.info, is_verbose)
+    engine = StacMapperEngine(engine_definition_file)
 
     odc_elements = []
     logger_message("mapping each STAC item in STAC Item Collection", logger.info, is_verbose)
@@ -70,6 +71,10 @@ def item2dataset(engine: StacMapperEngine, collection_name: str,
             "name": collection_name
         })
         _odc_element["id"] = str(uuid.uuid4())
+
+        # geometry is only mapped if 'crs' is defined in product
+        if 'geometry' in _odc_element:
+            del _odc_element['geometry']
 
         if dc_index:
             # get product definition

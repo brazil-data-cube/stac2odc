@@ -39,13 +39,8 @@ def cli():
 @click.option('--verbose', default=False, is_flag=True, help='Enable verbose mode')
 def collection2product_cli(collection: str, url: str, outdir: str, engine_file: str, datacube_config: str,
                            verbose: bool):
-    options = {
-        'outdir': outdir,
-        'verbose': verbose
-    }
-
     collection_definition = stac.STAC(url, False).collection(collection)
-    odc_element = stac2odc.collection.collection2product(engine_file, collection_definition, **options)
+    odc_element = stac2odc.collection.collection2product(engine_file, collection_definition, verbose=verbose)
     product_definition_file = write_odc_element_in_yaml_file(odc_element, os.path.join(outdir, f'{collection}.yaml'))
 
     # code adapted from: https://github.com/opendatacube/datacube-core/blob/develop/datacube/scripts/product.py
@@ -63,20 +58,14 @@ def collection2product_cli(collection: str, url: str, outdir: str, engine_file: 
 @cli.command(name="item2dataset", help="Function to convert a STAC Collection JSON to ODC Dataset YAML")
 @click.option('-c', '--collection', required=True, help='Collection name (Ex. CB4MOSBR_64_3M_STK).')
 @click.option('--url', default='http://brazildatacube.dpi.inpe.br/stac/', help='BDC STAC url.')
-@click.option('--basepath', default='/gfs', help='Repository base path')
-@click.option('-o', '--outpath', default='./', help='Output path')
-@click.option('-m', '--max-items', default=None, help='Max items', required=True)
+@click.option('-o', '--outdir', default='./', help='Output directory')
+@click.option('-m', '--max-items', help='Max items', required=True)
+@click.option('-e', '--engine-file', required=True,
+              help='Mapper configurations to convert STAC Collection to ODC Product')
+@click.option('--datacube-config', '-dconfig', default=None, required=False)
 @click.option('--verbose', default=False, is_flag=True, help='Enable verbose mode')
 @click.option('--advanced-filter', default=None, help='Search STAC Items with specific parameters')
-@click.option('--datacube-config', '-dconfig', default=None, required=False)
-def item2dataset_cli(collection, url, basepath, outpath, max_items, verbose, advanced_filter, datacube_config):
-    options = {
-        'basepath': basepath,
-        'outpath': outpath,
-        'verbose': verbose,
-        'max_items': int(max_items)
-    }
-
+def item2dataset_cli(collection, url, outdir, max_items, engine_file, datacube_config, verbose, advanced_filter):
     _filter = {"collections": [collection]}
     if advanced_filter:
         _filter = {
@@ -84,6 +73,9 @@ def item2dataset_cli(collection, url, basepath, outpath, max_items, verbose, adv
         }
 
     stac_service = stac.STAC(url, False)
-    features = create_feature_collection_from_stac_elements(stac_service, max_items, _filter)
-
     dc_index = datacube_index(datacube_config)
+
+    features = create_feature_collection_from_stac_elements(stac_service, int(max_items), _filter)
+    odc_datasets = stac2odc.item.item2dataset(engine_file, collection, features, dc_index, verbose=verbose)
+
+    write_odc_element_in_yaml_file(odc_datasets, outdir)
