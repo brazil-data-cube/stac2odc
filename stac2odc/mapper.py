@@ -7,14 +7,15 @@
 #
 
 from collections import OrderedDict
+from typing import Union, List, Dict
 
 import stac2odc.tree as tree
-from stac2odc.exception import ODCInvalidType
+from stac2odc.exception import ODCInvalidType, EngineInvalidDefinitionKey
 from stac2odc.operation import apply_custom_map_function
 from stac2odc.toolbox import load_custom_configuration_file
 
 
-def _apply_custom_mapping(stac_values: list, custom_mapping: dict) -> object:
+def _apply_custom_mapping(stac_values: Union[List, Dict], custom_mapping: dict) -> object:
     """Function to map custom definitions in mapping function. With this functions is possible use STAC
         definition in arbitrary fields
     Args:
@@ -146,6 +147,23 @@ class StacMapperEngine:
                 tree.add_value_by_tree_path(odc_element, odc_element_property, value)
 
         return odc_element
+
+    def get_definition_by_name(self, odc_type: str, source: str, definition_name: str) -> Union[Dict, str, List]:
+        """Get an arbitrary definition in Stac Engine Mapper.
+        Args:
+            odc_type (str): Type of element definition in ODC (E.g. dataset, product)
+            source (str): Source where element is (E.g. fromSTAC, fromConstant, fromFile)
+            definition_name (str): Definition name (E.g. metadata.product.name)
+        Returns:
+            Dict with result or raises EngineInvalidDefinitionKey
+        """
+
+        if self._engine_definition.get(odc_type):
+            _element = self._engine_definition.get(odc_type).get(source)
+
+            if _element:
+                return tree.get_value_by_tree_path(_element, definition_name)
+        raise EngineInvalidDefinitionKey("Get inserted is not valid for this engine definition!")
 
     def map_collection_to_product(self, stac_collection: dict):
         """

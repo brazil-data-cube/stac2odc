@@ -44,10 +44,11 @@ class StacItemGeometry:
         """
 
         if isinstance(geom_def, BaseGeometry):
-            self._basegeom = geom_def._base_geom
-        elif "type" in geom_def:
-            # check is a geojson
-            self._basegeom = shapely.geometry.Polygon(*geom_def['coordinates'])
+            self._basegeom = geom_def
+        elif isinstance(geom_def, StacItemGeometry):
+            self._basegeom = geom_def._basegeom
+        elif "type" in geom_def:  # check is a geojson
+            self._basegeom = shapely.geometry.GeometryCollection([shapely.geometry.shape(geom_def)])
         else:
             # get bbox
             self._basegeom = shapely.geometry.box(*geom_def)
