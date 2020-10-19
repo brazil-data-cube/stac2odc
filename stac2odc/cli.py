@@ -10,6 +10,10 @@ import os
 
 import click
 import stac
+from datacube.index import MissingRecordError
+from datacube.index.hl import Doc2Dataset
+from datacube.scripts.dataset import remap_uri_from_doc, dataset_stream
+from datacube.ui.common import ui_path_doc_stream
 from datacube.utils import InvalidDocException
 from datacube.utils.documents import read_documents
 from loguru import logger
@@ -52,7 +56,7 @@ def collection2product_cli(collection: str, url: str, outdir: str, engine_file: 
             logger_message(f'Adding {_type.name}', logger.info, verbose)
             dc_index.products.add(_type)
         except InvalidDocException as e:
-            logger_message(f'Error to add product: {str(e)}', logger.warning, verbose)
+            logger_message(f'Error to add product: {str(e)}', logger.warning, True)
 
 
 @cli.command(name="item2dataset", help="Function to convert a STAC Collection JSON to ODC Dataset YAML")
@@ -77,5 +81,17 @@ def item2dataset_cli(collection, url, outdir, max_items, engine_file, datacube_c
 
     features = create_feature_collection_from_stac_elements(stac_service, int(max_items), _filter)
     odc_datasets = stac2odc.item.item2dataset(engine_file, collection, features, dc_index, verbose=verbose)
+    odc_datasets_definition_files = write_odc_element_in_yaml_file(odc_datasets, outdir)
 
-    write_odc_element_in_yaml_file(odc_datasets, outdir)
+    # add datasets definitions on datacube index
+    # code adapted from: https://github.com/opendatacube/datacube-core/blob/develop/datacube/scripts/dataset.py
+    ds_resolve = Doc2Dataset(dc_index, [collection])
+    doc_stream = remap_uri_from_doc(ui_path_doc_stream(odc_datasets_definition_files, uri=True))
+    datasets_on_stream = dataset_stream(doc_stream, ds_resolve)
+
+    logger_message(f"Adding datasets", logger.info, True)
+    for dataset in datasets_on_stream:
+        try:
+            dc_index.datasets.add(dataset, with_lineage=True)
+        except (ValueError, MissingRecordError):
+            logger_message(f"Error to add dataset ({dataset.local_uri})", logger.warning, True)

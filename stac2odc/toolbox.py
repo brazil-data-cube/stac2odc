@@ -30,7 +30,8 @@ def load_custom_configuration_file(custom_configuration_file_path: str):
         return loader.load(cfile)
 
 
-def write_odc_element_in_yaml_file(content: Union[dict, OrderedDict, List[OrderedDict]], path_to_file: str):
+def write_odc_element_in_yaml_file(content: Union[dict, OrderedDict, List[OrderedDict]],
+                                   path_to_file: str) -> Union[str, List]:
     """
     Args:
         content (dict or OrderedDict): Content to write
@@ -46,8 +47,12 @@ def write_odc_element_in_yaml_file(content: Union[dict, OrderedDict, List[Ordere
     os.makedirs(path_to_file, exist_ok=True)
 
     if isinstance(content, list):
+        element_paths = []
         for c in content:
-            _write(os.path.join(path_to_file, c['id'] + ".yaml"), c)
+            _path = os.path.join(path_to_file, c['id'] + ".yaml")
+            _write(_path, c)
+            element_paths.append(_path)
+        return element_paths
     else:
         _write(path_to_file, content)
     return path_to_file

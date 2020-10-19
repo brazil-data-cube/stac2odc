@@ -1,0 +1,40 @@
+{
+  "engine_name": "bdc-stac-09-mapper",
+  "product": {
+    "fromSTAC": {
+      "name": "id",
+      "description": "description",
+      "metadata.product.name": "familyTitle",
+      "measurements": {
+        "from": "assets",
+        "customMapFunction": {
+          "functionName": "functionToMapL8Assets",
+          "functionFile": "engine-definitions/custom_map.py"
+        }
+      }
+    },
+    "fromFile": {
+      "measurements.ANG.flags_definition": {
+        "file": "engine-definitions/flags_definition.yaml"
+      }
+    },
+    "fromConstant": {
+      "metadata_type": "eo3",
+      "measurements.units": "meters"
+    }
+  },
+  "dataset": {
+    "fromSTAC": {
+      "measurements": {
+        "from": "assets",
+        "customMapping": {
+          "measurements.$key.path": "href",
+          "exclude": [
+            "thumb_large", "thumb_small"
+          ]
+        }
+      },
+      "geometry": "geometry"
+    }
+  }
+}
