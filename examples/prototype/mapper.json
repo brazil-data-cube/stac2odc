@@ -19,22 +19,25 @@
         }
       }
     },
-	"fromFile": {
-		"measurements.band_name.flags_definition": {
-			"file": "engine-definitions/flags_definition.yaml"
-		}
-	},
+    "fromFile": {
+      "measurements.band_name.flags_definition": {
+        "file": "engine-definitions/flags_definition.yaml"
+      }
+    },
     "fromConstant": {
       "metadata_type": "eo",
       "measurements.units": "meters"
     }
   },
   "dataset": {
-    "measurements": {
-      "from": "assets",
-      "customMapping": {
-        "measurements.$key.path": "href"
-      }
+    "fromSTAC": {
+      "measurements": {
+        "from": "assets",
+        "customMapping": {
+          "measurements.$key.path": "href"
+        }
+      },
+      "geometry": "geometry"
     }
   }
 }

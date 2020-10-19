@@ -10,6 +10,10 @@ class EngineDefinitionNotFound(RuntimeError):
     ...
 
 
+class EngineInvalidDefinitionKey(RuntimeError):
+    ...
+
+
 class ODCInvalidType(TypeError):
     ...
 
