@@ -1,6 +1,6 @@
 {
   "engine_name": "stac-mapper",
-  "collection": {
+  "product": {
     "fromSTAC": {
       "name": "id",
       "description": "description",
@@ -9,7 +9,7 @@
         "from": "properties.bands",
         "customMapping": {
           "name": "name",
-          "alias": "common_name",
+          "aliases": "common_name",
           "dtype": "data_type",
           "nodata": "nodata"
         },
