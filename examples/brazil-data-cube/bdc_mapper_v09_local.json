@@ -1,0 +1,49 @@
+{
+  "engine_name": "bdc-stac-09-mapper",
+  "collection": {
+    "fromSTAC": {
+      "name": "id",
+      "description": "description",
+      "metadata.product.name": "id",
+      "measurements": {
+        "from": "properties.eo:bands",
+        "customMapping": {
+          "name": "name",
+          "alias": "common_name",
+          "dtype": "data_type",
+          "nodata": "nodata"
+        }
+      },
+      "storage.crs": "bdc:crs"
+    },
+    "fromConstant": {
+      "metadata_type": "eo",
+      "measurements.units": "meters"
+    }
+  },
+  "dataset": {
+    "fromSTAC": {
+      "properties.datetime": "properties.datetime",
+      "properties.dtr:start_datetime": "properties.start_datetime",
+      "properties.dtr:end_datetime": "properties.end_datetime",
+      "properties.odc:processing_datetime": "properties.created",
+      "properties.odc:region_code": "properties.bdc:tile:",
+      "properties.eo:platform": "properties.platform",
+      "properties.eo:instrument": "properties.instruments",
+      "measurements": {
+        "from": "assets",
+        "customMapFunction": {
+          "functionName": "function_to_map_bdc_measurements",
+          "functionFile": "bdc_custom_mapping.py"
+        }
+      },
+      "geometry": "geometry"
+    },
+    "fromConstant": {
+      "$schema": "https://schemas.opendatacube.org/dataset",
+      "properties.odc:file_format": "properties.bdc:tile:",
+      "properties.odc:product_family": "ard",
+      "lineage": {}
+    }
+  }
+}
