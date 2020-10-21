@@ -60,7 +60,8 @@ def collection2product_cli(collection: str, url: str, outdir: str, engine_file: 
 
 
 @cli.command(name="item2dataset", help="Function to convert a STAC Collection JSON to ODC Dataset YAML")
-@click.option('-c', '--collection', required=True, help='Collection name (Ex. CB4MOSBR_64_3M_STK).')
+@click.option('-sc', '--stac-collection', required=True, help='Collection name (e.g. CB4MOSBR_64_3M_STK).')
+@click.option('-dp', '--dc-product', required=True, help='Product name in Open Data Cube (e.g. CB4MOSBR_64_3M_STK)')
 @click.option('--url', default='http://brazildatacube.dpi.inpe.br/stac/', help='BDC STAC url.')
 @click.option('-o', '--outdir', default='./', help='Output directory')
 @click.option('-m', '--max-items', help='Max items', required=True)
@@ -69,8 +70,9 @@ def collection2product_cli(collection: str, url: str, outdir: str, engine_file: 
 @click.option('--datacube-config', '-dconfig', default=None, required=False)
 @click.option('--verbose', default=False, is_flag=True, help='Enable verbose mode')
 @click.option('--advanced-filter', default=None, help='Search STAC Items with specific parameters')
-def item2dataset_cli(collection, url, outdir, max_items, engine_file, datacube_config, verbose, advanced_filter):
-    _filter = {"collections": [collection]}
+def item2dataset_cli(stac_collection, dc_product, url, outdir, max_items, engine_file, datacube_config, verbose,
+                     advanced_filter):
+    _filter = {"collections": [stac_collection]}
     if advanced_filter:
         _filter = {
             **_filter, **prepare_advanced_filter(advanced_filter)
@@ -80,12 +82,12 @@ def item2dataset_cli(collection, url, outdir, max_items, engine_file, datacube_c
     dc_index = datacube_index(datacube_config)
 
     features = create_feature_collection_from_stac_elements(stac_service, int(max_items), _filter)
-    odc_datasets = stac2odc.item.item2dataset(engine_file, collection, features, dc_index, verbose=verbose)
+    odc_datasets = stac2odc.item.item2dataset(engine_file, dc_product, features, dc_index, verbose=verbose)
     odc_datasets_definition_files = write_odc_element_in_yaml_file(odc_datasets, outdir)
 
     # add datasets definitions on datacube index
     # code adapted from: https://github.com/opendatacube/datacube-core/blob/develop/datacube/scripts/dataset.py
-    ds_resolve = Doc2Dataset(dc_index, [collection])
+    ds_resolve = Doc2Dataset(dc_index, [dc_product])
     doc_stream = remap_uri_from_doc(ui_path_doc_stream(odc_datasets_definition_files, uri=True))
     datasets_on_stream = dataset_stream(doc_stream, ds_resolve)
 

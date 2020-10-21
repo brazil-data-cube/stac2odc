@@ -10,7 +10,13 @@
         }
       },
       "description": "description",
-      "metadata.product.name": "id",
+      "metadata.product.name": {
+        "from": "id",
+        "customMapFunction": {
+          "functionName": "transform_id",
+          "functionFile": "examples/brazil-data-cube/bdc_custom_mapping.py"
+        }
+      },
       "measurements": {
         "from": "properties.eo:bands",
         "customMapping": {
@@ -32,7 +38,7 @@
       "properties.dtr:start_datetime": "properties.start_datetime",
       "properties.dtr:end_datetime": "properties.end_datetime",
       "properties.odc:processing_datetime": "properties.created",
-      "properties.odc:region_code": "properties.bdc:tile:",
+      "properties.odc:region_code": "properties.bdc:tile",
       "properties.eo:platform": "properties.platform",
       "properties.eo:instrument": "properties.instruments",
       "measurements": {
@@ -48,7 +54,7 @@
     },
     "fromConstant": {
       "$schema": "https://schemas.opendatacube.org/dataset",
-      "properties.odc:file_format": "properties.bdc:tile:",
+      "properties.odc:file_format": "GeoTIFF",
       "properties.odc:product_family": "ard",
       "lineage": {}
     }
