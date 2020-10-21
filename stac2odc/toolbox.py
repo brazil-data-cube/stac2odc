@@ -44,7 +44,7 @@ def write_odc_element_in_yaml_file(content: Union[dict, OrderedDict, List[Ordere
         with open(path_to_file, 'w') as ofile:
             yaml.dump(content, ofile)
 
-    os.makedirs(path_to_file, exist_ok=True)
+    os.makedirs(os.path.split(path_to_file)[0], exist_ok=True)
 
     if isinstance(content, list):
         element_paths = []

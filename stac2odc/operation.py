@@ -49,12 +49,12 @@ def apply_custom_map_function(stac_element_name: str,
                                                        function_definition['functionFile'])
     odc_element_created_with_user_function = user_defined_function(stac_values)
 
-    if not isinstance(odc_element_created_with_user_function, OrderedDict) and not isinstance(
-            odc_element_created_with_user_function, list):
-        tname = type(odc_element_created_with_user_function)
+    if not isinstance(stac_values, (str, int, float)):
+        if not isinstance(odc_element_created_with_user_function, (OrderedDict, list)):
+            tname = type(odc_element_created_with_user_function)
 
-        raise InvalidReturnedTypeFromUserDefinedFunction(f"""
-            The user defined function to {stac_element_name} is invalid! The output must be an OrderedDict or list. 
-Actual return is {tname} 
-        """.strip())
+            raise InvalidReturnedTypeFromUserDefinedFunction(f"""
+                The user defined function to {stac_element_name} is invalid! The output must be an OrderedDict or list. 
+    Actual return is {tname} 
+            """.strip())
     return odc_element_created_with_user_function
