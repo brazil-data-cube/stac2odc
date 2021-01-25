@@ -40,10 +40,11 @@ def cli():
 @click.option('-e', '--engine-file', required=True,
               help='Mapper configurations to convert STAC Collection to ODC Product')
 @click.option('--datacube-config', '-dconfig', default=None, required=False)
+@click.option('--access-token', default=None, is_flag=False, help='Personal Access Token of the BDC Auth')
 @click.option('--verbose', default=False, is_flag=True, help='Enable verbose mode')
 def collection2product_cli(collection: str, url: str, outdir: str, engine_file: str, datacube_config: str,
-                           verbose: bool):
-    collection_definition = stac.STAC(url, False).collection(collection)
+                           access_token, verbose: bool):
+    collection_definition = stac.STAC(url, False, access_token=access_token).collection(collection)
     odc_element = stac2odc.collection.collection2product(engine_file, collection_definition, verbose=verbose)
     product_definition_file = write_odc_element_in_yaml_file(odc_element, os.path.join(outdir, f'{collection}.yaml'))
 
@@ -69,16 +70,17 @@ def collection2product_cli(collection: str, url: str, outdir: str, engine_file: 
               help='Mapper configurations to convert STAC Collection to ODC Product')
 @click.option('--datacube-config', '-dconfig', default=None, required=False)
 @click.option('--verbose', default=False, is_flag=True, help='Enable verbose mode')
+@click.option('--access-token', default=None, is_flag=False, help='Personal Access Token of the BDC Auth')
 @click.option('--advanced-filter', default=None, help='Search STAC Items with specific parameters')
 def item2dataset_cli(stac_collection, dc_product, url, outdir, max_items, engine_file, datacube_config, verbose,
-                     advanced_filter):
+                     access_token, advanced_filter):
     _filter = {"collections": [stac_collection]}
     if advanced_filter:
         _filter = {
             **_filter, **prepare_advanced_filter(advanced_filter)
         }
 
-    stac_service = stac.STAC(url, False)
+    stac_service = stac.STAC(url, False, access_token=access_token)
     dc_index = datacube_index(datacube_config)
 
     features = create_feature_collection_from_stac_elements(stac_service, int(max_items), _filter)
