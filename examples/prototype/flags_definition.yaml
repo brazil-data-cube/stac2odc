@@ -1,0 +1,30 @@
+pixel_qa:
+  bits: [0,1,2,3,4,5,6,7,8,9,10,11]
+  description: Level 2 pixel quality band
+  values:
+    1: Fill
+    2: Clear
+    4: Water
+    8: Cloud shadow
+    16: Snow
+    32: Cloud
+    64: Cloud Confidence Low Bit
+    128: Cloud Confidence High Bit
+    256: Cirrus Confidence Low Bit
+    512: Cirrus Confidence High Bit
+    1024: Terrain Occlusion
+    2048: Unused  # Be careful of repeated names which could confuse the masking code
+  fill:
+    bits: 0
+    description: No data
+    values: {0: false, 1: true}
+  clear:
+    bits: 1
+    description: Clear
+    values: {0: no_clear_land, 1: clear_land}
+  # ...
+  cloud_confidence:
+    bits: [6, 7]
+    description: Cloud confidence
+    values: {0: none, 1: low, 2: medium, 3: high}
+  # ...

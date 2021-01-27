@@ -1,0 +1,47 @@
+{
+  "engine_name": "stac-mapper",
+  "product": {
+    "fromSTAC": {
+      "name": "id",
+      "description": "description",
+      "metadata.product.name": "id",
+      "measurements": {
+        "from": "properties.bands",
+        "customMapping": {
+          "name": "name",
+          "aliases": "common_name",
+          "dtype": "data_type",
+          "nodata": "nodata"
+        },
+        "customMapFunction": {
+          "functionName": "userDefinedFunction",
+          "functionFile": "userDefinedFunctionFile.py"
+        }
+      }
+    },
+    "fromFile": {
+      "measurements.band_name.flags_definition": {
+        "file": "engine-definitions/flags_definition.yaml"
+      }
+    },
+    "fromConstant": {
+      "metadata_type": "eo",
+      "measurements.units": "meters"
+    }
+  },
+  "dataset": {
+    "fromSTAC": {
+      "measurements": {
+        "from": "assets",
+        "customMapping": {
+          "measurements.$key.path": "href",
+          "exclude": [
+            "thumb_large",
+            "thumb_small"
+          ]
+        }
+      },
+      "geometry": "geometry"
+    }
+  }
+}

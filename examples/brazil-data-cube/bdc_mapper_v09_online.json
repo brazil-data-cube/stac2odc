@@ -1,0 +1,62 @@
+{
+  "engine_name": "bdc-stac-09-mapper",
+  "product": {
+    "fromSTAC": {
+      "name": {
+        "from": "id",
+        "customMapFunction": {
+          "functionName": "transform_id",
+          "functionFile": "examples/brazil-data-cube/bdc_custom_mapping.py"
+        }
+      },
+      "description": "description",
+      "metadata.product.name": {
+        "from": "id",
+        "customMapFunction": {
+          "functionName": "transform_id",
+          "functionFile": "examples/brazil-data-cube/bdc_custom_mapping.py"
+        }
+      },
+      "measurements": {
+        "from": "properties.eo:bands",
+        "customMapping": {
+          "name": "name",
+          "dtype": "data_type",
+          "nodata": "nodata"
+        }
+      },
+      "storage.crs": "bdc:crs"
+    },
+    "fromConstant": {
+      "metadata_type": "eo3",
+      "measurements.units": "meters"
+    }
+  },
+  "dataset": {
+    "fromSTAC": {
+      "properties.datetime": "properties.datetime",
+      "properties.dtr:start_datetime": "properties.start_datetime",
+      "properties.dtr:end_datetime": "properties.end_datetime",
+      "properties.odc:processing_datetime": "properties.created",
+      "properties.odc:region_code": "properties.bdc:tile",
+      "properties.eo:platform": "properties.platform",
+      "properties.eo:instrument": "properties.instruments",
+      "measurements": {
+        "from": "assets",
+        "customMapping": {
+          "measurements.$key.path": "href",
+          "exclude": [
+            "thumbnail"
+          ]
+        }
+      },
+      "geometry": "geometry"
+    },
+    "fromConstant": {
+      "$schema": "https://schemas.opendatacube.org/dataset",
+      "properties.odc:file_format": "GeoTIFF",
+      "properties.odc:product_family": "ard",
+      "lineage": {}
+    }
+  }
+}
