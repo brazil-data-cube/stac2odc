@@ -38,7 +38,7 @@ def _create_geometry_object(geometry_path_in_stac_values: str, stac_values: Dict
 
             odc_geometry = OrderedDict()
             odc_geometry['type'] = stac_item_geometry['geometries'][0]['type']
-            odc_geometry['coordinates'] = str(stac_item_geometry['geometries'][0]['coordinates'])
+            odc_geometry['coordinates'] = stac_item_geometry['geometries'][0]['coordinates']
             return odc_geometry
     return
 

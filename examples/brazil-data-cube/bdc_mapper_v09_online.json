@@ -38,7 +38,7 @@
       "properties.dtr:start_datetime": "properties.start_datetime",
       "properties.dtr:end_datetime": "properties.end_datetime",
       "properties.odc:processing_datetime": "properties.created",
-      "properties.odc:region_code": "properties.bdc:tile",
+      "properties.odc:region_code": "properties.bdc:tiles",
       "properties.eo:platform": "properties.platform",
       "properties.eo:instrument": "properties.instruments",
       "measurements": {

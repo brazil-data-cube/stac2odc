@@ -35,8 +35,8 @@ def cli():
 
 @cli.command(name="collection2product", help="Function to convert a STAC Collection JSON to ODC Product YAML")
 @click.option('-c', '--collection', required=True, help='Collection name (Ex. CB4MOSBR_64_3M_STK).')
-@click.option('--url', default='http://brazildatacube.dpi.inpe.br/stac/', help='BDC STAC url.')
-@click.option('-o', '--outdir', default=None, help='Output directory', required=True)
+@click.option('--url', default='https://brazildatacube.dpi.inpe.br/stac/', help='BDC STAC url.')
+@click.option('-o', '--outdir', help='Output directory', required=True)
 @click.option('-e', '--engine-file', required=True,
               help='Mapper configurations to convert STAC Collection to ODC Product')
 @click.option('--datacube-config', '-dconfig', default=None, required=False)
@@ -63,7 +63,7 @@ def collection2product_cli(collection: str, url: str, outdir: str, engine_file: 
 @cli.command(name="item2dataset", help="Function to convert a STAC Collection JSON to ODC Dataset YAML")
 @click.option('-sc', '--stac-collection', required=True, help='Collection name (e.g. CB4MOSBR_64_3M_STK).')
 @click.option('-dp', '--dc-product', required=True, help='Product name in Open Data Cube (e.g. CB4MOSBR_64_3M_STK)')
-@click.option('--url', default='http://brazildatacube.dpi.inpe.br/stac/', help='BDC STAC url.')
+@click.option('--url', default='https://brazildatacube.dpi.inpe.br/stac/', help='BDC STAC url.')
 @click.option('-o', '--outdir', default='./', help='Output directory')
 @click.option('-m', '--max-items', help='Max items', required=True)
 @click.option('-e', '--engine-file', required=True,
