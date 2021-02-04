@@ -20,3 +20,7 @@ class ODCInvalidType(TypeError):
 
 class InvalidReturnedTypeFromUserDefinedFunction(TypeError):
     ...
+
+
+class UserDefinedFunctionError(TypeError):
+    ...

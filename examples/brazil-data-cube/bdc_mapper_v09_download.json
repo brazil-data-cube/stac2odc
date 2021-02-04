@@ -17,7 +17,7 @@
       "storage.crs": "bdc:crs"
     },
     "fromConstant": {
-      "metadata_type": "eo",
+      "metadata_type": "eo3",
       "measurements.units": "meters"
     }
   },
@@ -27,14 +27,21 @@
       "properties.dtr:start_datetime": "properties.start_datetime",
       "properties.dtr:end_datetime": "properties.end_datetime",
       "properties.odc:processing_datetime": "properties.created",
-      "properties.odc:region_code": "properties.bdc:tile:",
+      "properties.odc:region_code": "properties.bdc:tiles",
       "properties.eo:platform": "properties.platform",
       "properties.eo:instrument": "properties.instruments",
       "measurements": {
         "from": "assets",
         "customMapFunction": {
-          "functionName": "function_to_map_bdc_measurements",
-          "functionFile": "bdc_custom_mapping.py"
+          "functionName": "function_to_map_bdc_measurements_in_local_storage",
+          "functionFile": "examples/brazil-data-cube/bdc_custom_mapping.py"
+        }
+      },
+      "grids": {
+        "from": "assets",
+        "customMapFunction": {
+          "functionName": "get_grids_for_one_asset",
+          "functionFile": "examples/brazil-data-cube/bdc_custom_mapping.py"
         }
       },
       "geometry": "geometry"
