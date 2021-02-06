@@ -1,15 +1,26 @@
 {
-  "engine_name": "bdc-stac-09-mapper",
-  "collection": {
+  "engine_name": "bdc-stac-09-mapper-local-repository",
+  "product": {
     "fromSTAC": {
-      "name": "id",
+      "name": {
+        "from": "id",
+        "customMapFunction": {
+          "functionName": "transform_id",
+          "functionFile": "examples/brazil-data-cube/engines/bdc_custom_mapping.py"
+        }
+      },
       "description": "description",
-      "metadata.product.name": "id",
+      "metadata.product.name": {
+        "from": "id",
+        "customMapFunction": {
+          "functionName": "transform_id",
+          "functionFile": "examples/brazil-data-cube/engines/bdc_custom_mapping.py"
+        }
+      },
       "measurements": {
         "from": "properties.eo:bands",
         "customMapping": {
           "name": "name",
-          "alias": "common_name",
           "dtype": "data_type",
           "nodata": "nodata"
         }
@@ -34,14 +45,14 @@
         "from": "assets",
         "customMapFunction": {
           "functionName": "function_to_map_bdc_measurements_in_local_storage",
-          "functionFile": "examples/brazil-data-cube/bdc_custom_mapping.py"
+          "functionFile": "examples/brazil-data-cube/engines/bdc_custom_mapping.py"
         }
       },
       "grids": {
         "from": "assets",
         "customMapFunction": {
           "functionName": "get_grids_for_one_asset",
-          "functionFile": "examples/brazil-data-cube/bdc_custom_mapping.py"
+          "functionFile": "examples/brazil-data-cube/engines/bdc_custom_mapping.py"
         }
       },
       "geometry": "geometry"

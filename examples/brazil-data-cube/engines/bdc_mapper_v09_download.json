@@ -1,12 +1,12 @@
 {
-  "engine_name": "bdc-stac-09-mapper",
+  "engine_name": "bdc-stac-09-mapper-download-products",
   "product": {
     "fromSTAC": {
       "name": {
         "from": "id",
         "customMapFunction": {
           "functionName": "transform_id",
-          "functionFile": "examples/brazil-data-cube/bdc_custom_mapping.py"
+          "functionFile": "examples/brazil-data-cube/engines/bdc_custom_mapping.py"
         }
       },
       "description": "description",
@@ -14,7 +14,7 @@
         "from": "id",
         "customMapFunction": {
           "functionName": "transform_id",
-          "functionFile": "examples/brazil-data-cube/bdc_custom_mapping.py"
+          "functionFile": "examples/brazil-data-cube/engines/bdc_custom_mapping.py"
         }
       },
       "measurements": {
@@ -43,18 +43,23 @@
       "properties.eo:instrument": "properties.instruments",
       "measurements": {
         "from": "assets",
-        "customMapping": {
-          "measurements.$key.path": "href",
-          "exclude": [
-            "thumbnail"
-          ]
+        "customMapFunction": {
+          "functionName": "function_to_map_bdc_measurements_downloaded",
+          "functionFile": "examples/brazil-data-cube/engines/bdc_custom_mapping.py"
+        }
+      },
+      "grids": {
+        "from": "assets",
+        "customMapFunction": {
+          "functionName": "get_grids_for_one_asset",
+          "functionFile": "examples/brazil-data-cube/engines/bdc_custom_mapping.py"
         }
       },
       "geometry": "geometry"
     },
     "fromConstant": {
       "$schema": "https://schemas.opendatacube.org/dataset",
-      "properties.odc:file_format": "GeoTIFF",
+      "properties.odc:file_format": "properties.bdc:tile:",
       "properties.odc:product_family": "ard",
       "lineage": {}
     }

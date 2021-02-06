@@ -1,0 +1,51 @@
+{
+  "engine_name": "astraea-stac-09-mapper",
+  "product": {
+    "fromSTAC": {
+      "name": "id",
+      "description": "description",
+      "metadata.product.name": "id",
+      "measurements": {
+        "from": "assets",
+        "customMapFunction": {
+          "functionName": "functionToMapL8Assets",
+          "functionFile": "examples/astraea/engines/custom_functions.py"
+        }
+      }
+    },
+    "fromConstant": {
+      "metadata_type": "eo3",
+      "measurements.units": "meters"
+    }
+  },
+  "dataset": {
+    "fromSTAC": {
+      "measurements": {
+        "from": "assets",
+        "customMapping": {
+          "measurements.$key.path": "href",
+          "exclude": [
+            "thumb_large",
+            "thumb_small",
+            "MTL",
+            "ANG"
+          ]
+        }
+      },
+      "grids": {
+        "from": "assets",
+        "customMapFunction": {
+          "functionName": "get_grid",
+          "functionFile": "examples/astraea/engines/custom_functions.py"
+        }
+      }
+    },
+    "fromConstant": {
+      "$schema": "https://schemas.opendatacube.org/dataset",
+      "properties.odc:file_format": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "properties.odc:product_family": "Identity",
+      "lineage": {},
+      "crs": "EPSG:32615"
+    }
+  }
+}

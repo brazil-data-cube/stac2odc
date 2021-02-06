@@ -8,7 +8,7 @@
 
 import os
 from collections import OrderedDict
-from typing import List, Union
+from typing import List, Union, Dict
 from urllib.parse import urlparse
 
 import rasterio as rio
@@ -16,10 +16,27 @@ import rasterio as rio
 from stac2odc.exception import UserDefinedFunctionError
 
 # definitions
-BDC_ACCESS_TOKEN = ""
-BDC_EXCLUDED_BANDS = ["CLEAROB", "TOTALOB", "thumbnail", "PROVENANCE"]
+BDC_EXCLUDED_BANDS = ["thumbnail"]
 BDC_REPOSITORY_PATH = ""
 BDC_GRID_REFERENCE_BAND = "NDVI"
+
+
+def remove_invalid_keys(dict_in: Dict, invalid_keys: list) -> Dict:
+    """Remove invalid keys from dict
+
+    Args:
+        dict_in (Dict): Dictionary to remove keys
+
+        invalid_keys (list): List of keys to remove in `dict_in`
+    Returns:
+        Dict: Dict without invalid keys
+    """
+    _dict = dict_in.copy()
+
+    for invalid_key in invalid_keys:
+        if invalid_key in _dict:
+            del _dict[invalid_key]
+    return _dict
 
 
 def __download_file(url: str, out: str) -> None:
@@ -72,11 +89,12 @@ def __download_stac_tree(stac_item, download_out):
         out_path = os.path.join(basepath_repository, os.path.basename(assetpath))
 
         downloaded_files_path[key] = {"path": out_path}
-        __download_file(asset['href'] + f"?access_token={BDC_ACCESS_TOKEN}", out_path)
+        __download_file(asset['href'], out_path)
+
     return OrderedDict(downloaded_files_path)
 
 
-def function_to_map_bdc_measurements_in_local_storage(collection_element: object) -> Union[
+def function_to_map_bdc_measurements_downloaded(collection_element: object) -> Union[
     List[OrderedDict], OrderedDict]:
     """This function changes the BDC data product mappings for local use. This function downloads data locally for
     use outside the BDC infrastructure.
@@ -89,8 +107,29 @@ def function_to_map_bdc_measurements_in_local_storage(collection_element: object
     """
 
     # remove invalid keys
-    for invalid_key in BDC_EXCLUDED_BANDS: del collection_element[invalid_key]
+    collection_element = remove_invalid_keys(collection_element, BDC_EXCLUDED_BANDS)
     return __download_stac_tree(collection_element, BDC_REPOSITORY_PATH)
+
+
+def function_to_map_bdc_measurements_in_local_storage(collection_element: object) -> Union[
+    List[OrderedDict], OrderedDict]:
+    """This function changes the BDC data product mappings for local use. This function require internal access to
+    BDC Data Repository!
+
+    This function change STAC-Assets reference to be use BDC Local Data Repository.
+    Args:
+        collection_element (object): Object with stac features
+    Returns:
+        OrderedDict: Ordered Dict with path
+    """
+
+    files_in_bdc_data_storage = {}
+
+    for key in remove_invalid_keys(collection_element, BDC_EXCLUDED_BANDS):
+        asset = collection_element[key]
+        files_in_bdc_data_storage[key] = {"path": urlparse(asset["href"]).path}
+
+    return OrderedDict(files_in_bdc_data_storage)
 
 
 def get_grids_for_one_asset(collection_element: object) -> Union[List[OrderedDict], OrderedDict]:
@@ -98,7 +137,7 @@ def get_grids_for_one_asset(collection_element: object) -> Union[List[OrderedDic
 
     if not asset_reference:
         raise UserDefinedFunctionError("`BDC_GRID_REFERENCE_BAND` not found!")
-    datasource = rio.open(asset_reference["href"] + f"?access_token={BDC_ACCESS_TOKEN}")
+    datasource = rio.open(asset_reference["href"])
 
     return OrderedDict({
         "default": {
