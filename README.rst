@@ -59,4 +59,4 @@ Two operations are available with the tool
 Documentation
 --------------
 
-The complete documentation with all the options for using the tool is still being produced. However, it is possible to consume some usage examples available in the directory [examples](examples)
+The complete documentation with all the options for using the tool is still being produced. However, it is possible to consume some usage examples available in the directory `examples <examples>`_
