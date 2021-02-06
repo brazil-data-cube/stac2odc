@@ -25,7 +25,7 @@
       }
     },
     "fromConstant": {
-      "metadata_type": "eo",
+      "metadata_type": "eo3",
       "measurements.units": "meters"
     }
   },

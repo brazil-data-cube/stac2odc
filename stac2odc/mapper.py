@@ -139,16 +139,21 @@ class StacMapperEngine:
                 _value = from_constant_definitions.get(constant_product_definition)
                 if len(tree_path) > 1:  # check if tree_path go to a list of elements
                     _odc_prod_def = odc_element.copy()
-                    for tp in tree_path[:-1]:
-                        _odc_prod_def = _odc_prod_def.get(tp)
-                        if isinstance(_odc_prod_def, list):
-                            for el in _odc_prod_def:
-                                key = list(el.keys())[0]
-                                tree.add_value_by_tree_path(odc_element, ".".join([tp, el.get(key), tree_path[-1]]),
-                                                            _value)
+
+                    # check if first key exists. if don't exists, add full path
+                    if tree_path[0] not in _odc_prod_def.keys():
+                        tree.add_value_by_tree_path(odc_element, ".".join(tree_path), _value)
+                    else:
+                        for tp in tree_path[:-1]:
+                            _odc_prod_def = _odc_prod_def.get(tp)
+
+                            if isinstance(_odc_prod_def, list):
+                                for el in _odc_prod_def:
+                                    key = list(el.keys())[0]
+                                    tree.add_value_by_tree_path(odc_element, ".".join([tp, el.get(key), tree_path[-1]]),
+                                                                _value)
                 else:
                     tree.add_value_by_tree_path(odc_element, constant_product_definition, _value)
-
         if from_file_definitions:
             for odc_element_property in from_file_definitions:
                 value = load_custom_configuration_file(

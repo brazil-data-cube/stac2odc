@@ -91,6 +91,12 @@ def item2dataset(engine_definition_file: str, collection_name: str,
                 stac_item_geometry = _create_geometry_object(geometry_path, item_definition, _native_crs)
 
                 if stac_item_geometry:
+                    def listit(t):
+                        # from: https://stackoverflow.com/questions/1014352/how-do-i-convert-a-nested-tuple-of-tuples-and-lists-to-lists-of-lists-in-python
+                        return list(map(listit, t)) if isinstance(t, (list, tuple)) else t
+
+                    # transform tuples into list to avoid errors in yaml read/write
+                    stac_item_geometry["coordinates"] = listit(stac_item_geometry["coordinates"])
                     _odc_element["geometry"] = stac_item_geometry
         else:
             logger_message("There is no datacube_index definition. CRS will not be defined", logger.warning, is_verbose)
