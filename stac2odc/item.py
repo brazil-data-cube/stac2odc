@@ -11,15 +11,15 @@ from typing import List, Union, Dict
 
 import datacube.index.index
 from loguru import logger
+import json
 
 import stac2odc.tree as tree
-from stac2odc.geometry import StacItemGeometry
 from stac2odc.logger import logger_message
 from stac2odc.mapper import StacMapperEngine
+import rasterio as rio
 
 
-def _create_geometry_object(geometry_path_in_stac_values: str, stac_values: Dict,
-                            native_crs: str) -> Union[None, OrderedDict]:
+def _create_geometry_object(stac_values: Dict) -> Union[None, OrderedDict]:
     """
     Args:
         geometry_path_in_stac_values (str): Path where geometry definition is in stac_values
@@ -29,18 +29,24 @@ def _create_geometry_object(geometry_path_in_stac_values: str, stac_values: Dict
         OrderedDict or None
     """
 
-    if geometry_path_in_stac_values:
-        geometry_definition = tree.get_value_by_tree_path(stac_values, geometry_path_in_stac_values)
+    first_asset = list(stac_values.get('assets', {}).keys())[0]
 
-        if geometry_definition:
-            # ESPG:4326 is a STAC Item Spec definition
-            stac_item_geometry = StacItemGeometry(geometry_definition, 'EPSG:4326').to_crs(native_crs).to_geojson()
+    item_path = stac_values['assets'][first_asset]['href']
+    
+    ds = rio.open(item_path)
 
-            odc_geometry = OrderedDict()
-            odc_geometry['type'] = stac_item_geometry['geometries'][0]['type']
-            odc_geometry['coordinates'] = stac_item_geometry['geometries'][0]['coordinates']
-            return odc_geometry
-    return
+    coordinates =  [[
+        [ds.bounds.left, ds.bounds.top],     # left, top
+        [ds.bounds.right, ds.bounds.top],    # right, top
+        [ds.bounds.right, ds.bounds.bottom], # right, bottom
+        [ds.bounds.left, ds.bounds.bottom],  # left, bottom
+        [ds.bounds.left, ds.bounds.top]      # left, top
+    ]]           
+
+    return OrderedDict({
+        "type": "Polygon",
+        "coordinates": coordinates  
+    })
 
 
 def item2dataset(engine_definition_file: str, collection_name: str,
@@ -70,7 +76,9 @@ def item2dataset(engine_definition_file: str, collection_name: str,
         _odc_element["product"] = OrderedDict({
             "name": collection_name
         })
-        _odc_element["id"] = str(uuid.uuid4())
+
+        # create id based on odc_element content to avoid multiple inserts
+        _odc_element["id"] = str(uuid.uuid5(uuid.NAMESPACE_URL, json.dumps(_odc_element)))
 
         # geometry is only mapped if 'crs' is defined in product
         if 'geometry' in _odc_element:
@@ -85,10 +93,8 @@ def item2dataset(engine_definition_file: str, collection_name: str,
                 _native_crs = tree.get_value_by_tree_path(product_definition, crs_definition)
                 _odc_element["crs"] = _native_crs
 
-                # try add geometry
-                # "geometry" name is defined in ODC-Dataset fields spec
-                geometry_path = engine.get_definition_by_name("dataset", "fromSTAC", "geometry")
-                stac_item_geometry = _create_geometry_object(geometry_path, item_definition, _native_crs)
+                # get geometry metadata from file
+                stac_item_geometry = _create_geometry_object(item_definition)
 
                 if stac_item_geometry:
                     def listit(t):
